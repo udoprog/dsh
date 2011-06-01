@@ -1,0 +1,9 @@
+setup.cfg
+setup.py
+dsh/__init__.py
+dsh.egg-info/PKG-INFO
+dsh.egg-info/SOURCES.txt
+dsh.egg-info/dependency_links.txt
+dsh.egg-info/entry_points.txt
+dsh.egg-info/not-zip-safe
+dsh.egg-info/top_level.txt
