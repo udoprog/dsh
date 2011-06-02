@@ -1,6 +1,9 @@
 setup.cfg
 setup.py
 dsh/__init__.py
+dsh/dsh.py
+dsh/impl.py
+dsh/interface.py
 dsh.egg-info/PKG-INFO
 dsh.egg-info/SOURCES.txt
 dsh.egg-info/dependency_links.txt

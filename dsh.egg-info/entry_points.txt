@@ -1,3 +1,4 @@
+[console_scripts]
+dsh-server = dsh:server
+dsh = dsh:client
 
-      # -*- Entry points: -*-
-      

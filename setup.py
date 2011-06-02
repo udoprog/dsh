@@ -22,7 +22,8 @@ setup(name='dsh',
       ],
       entry_points={
           'console_scripts': [
-            "dsh-server = dsh:server"
+            "dsh-server = dsh:server",
+            "dsh = dsh:client",
           ]
         }
       )
