@@ -48,6 +48,7 @@ class DshProtocol(protocol.Protocol):
   DISABLED_st     = HEADER + ""
 
   DATA_MAX         = 2**20
+  READ_MAX         = DATA_MAX + 32
   RESEND_MAX       = 16
 
   frames = {
@@ -285,7 +286,7 @@ class DshProtocol(protocol.Protocol):
     while True:
       c = yield 1
 
-      if not c in self.commands:
+      if not str(c) in self.commands:
         self.error("no such command")
         return
 
@@ -344,6 +345,7 @@ class DshProtocol(protocol.Protocol):
     return self._recv[uid]
 
   def error(self, message):
+    log.msg("ERROR: " + message)
     self.sendFrame(self.ERROR, data=message)
 
   def disabled(self, message):
@@ -352,16 +354,31 @@ class DshProtocol(protocol.Protocol):
   def makeConnection(self, transport):
     self._feeder = self._feeder()
     self._required = self._feeder.next()
-    self._buffer = ""
+    self._buffer = bytearray(self.READ_MAX)
+    self._p = 0
+    self._received = 0
 
     self._send = dict()
     self._recv = dict()
     protocol.Protocol.makeConnection(self, transport)
 
   def dataReceived(self, data):
-    self._buffer += data
+    self._received += len(data)
 
-    while len(self._buffer) >= self._required:
-      req = self._required
-      self._required = self._feeder.send(self._buffer[:req])
-      self._buffer = self._buffer[req:]
+    while self._received >= self._required:
+      data_part = self._required - self._p
+
+      if self._p == 0:
+        feed = data[0:data_part]
+      else:
+        feed = self._buffer[0:self._p] + data[0:data_part]
+
+      rest = data[data_part:]
+
+      self._received -= len(feed)
+      self._required = self._feeder.send(feed)
+      data = rest
+      self._p = 0
+
+    self._buffer[self._p:self._p + len(data)] = data
+    self._p += len(data)

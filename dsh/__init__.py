@@ -61,6 +61,8 @@ def client():
   import sys
   import yaml
 
+  log.startLogging(sys.stdout)
+
   if len(sys.argv) != 4:
     print "usage: dsh <host> <oper> <file>"
     sys.exit(1)
