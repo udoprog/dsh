@@ -69,22 +69,42 @@ from .dsh import DshProtocol
 class FileWriter:
   implements(IWriter)
 
+  POPULATE_BUFFER_SIZE = 2 ** 20
+
   def __init__(self):
     self._fp = None
     self._size = None
+    self._realsize = None
 
-  def open(self, path, size):
+  def open(self, path, size, populate=False):
+    if self._fp:
+      raise RuntimeError, "file already open"
+
     self._fp = open(path, "w")
     self._size = size
+    self._realsize = 0
+
+    if not populate:
+      return
+
+    nil = 4096 * "\x00"
+    div, mod = divmod(size, self.POPULATE_BUFFER_SIZE)
+    [self._fp.write(nil) for i in xrange(div)]
+    self._fp.write("\x00" * mod)
+    self._realsize = self._size
 
   def write(self, count, data):
-    self._fp.seek(count * DshProtocol.DATA_MAX)
+    pos = count * DshProtocol.DATA_MAX
+    if self._realsize < pos:
+      raise ValueError, "cannot seek to position, realsize too small"
+    self._fp.seek(pos)
     self._fp.write(data)
 
   def close(self):
     self._fp.close()
     self._fp = None
     self._size = None
+    self._realsize = None
 
   def parts(self):
     parts, mod = divmod(self._size, DshProtocol.DATA_MAX)
@@ -107,7 +127,10 @@ class FileGenerator:
     self._fp = open(path, "r")
 
   def read(self, count):
-    self._fp.seek(DshProtocol.DATA_MAX * count)
+    pos = count * DshProtocol.DATA_MAX
+    if self._size < pos:
+      raise ValueError, "cannot seek to position, size too small"
+    self._fp.seek(pos)
     return self._fp.read(DshProtocol.DATA_MAX)
 
   def size(self):

@@ -11,10 +11,13 @@ class IGenerator(Interface):
     """Return the number of parts this generator will occupy"""
 
 class IWriter(Interface):
-  def open(self, path, size):
+  def open(self, path, size, populate=False):
     """
     Allocate and open a stream to the target.
-    @raise RuntimeError if problem arises.
+    
+    path     - path to write size
+    size     - size of the file in bytes
+    populate - indicates weither file should be pre-populated with zeroes.
     """
 
   def write(self, count, data):
